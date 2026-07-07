@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/1_Core/">
+    <Project Path="EmployeeMgmt.Domain/EmployeeMgmt.Domain.csproj" />
+  </Folder>
+  <Folder Name="/2_Application/">
+    <Project Path="EmployeeMgmt.Application/EmployeeMgmt.Application.csproj" />
+  </Folder>
+  <Folder Name="/3_Infrastructure/">
+    <Project Path="EmployeeMgmt.Infrastructure/EmployeeMgmt.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/4_Presentation/">
+    <Project Path="EmployeeMgmt.API/EmployeeMgmt.API.csproj" />
+  </Folder>
+</Solution>
