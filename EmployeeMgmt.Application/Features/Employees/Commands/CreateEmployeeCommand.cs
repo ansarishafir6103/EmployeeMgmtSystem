@@ -14,6 +14,8 @@ namespace EmployeeMgmt.Application.Features.Employees.Commands
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Department { get; set; } = string.Empty;
+
+        public string Password { get; set; } = string.Empty;
     }
     public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeCommand, bool>
     {
@@ -29,12 +31,19 @@ namespace EmployeeMgmt.Application.Features.Employees.Commands
             // Execute FluentValidation logic
             var validationResult = await _validator.ValidateAsync(request, cancellationToken);
 
+            if (!validationResult.IsValid) return false;
+
+            string encryptedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
             var employeeEntity = new Employee
             {
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = request.Email,
-                Department = request.Department
+                Department = request.Department,
+                HashedPassword = encryptedPassword,
+                IsActive = true
+
             };
             return await _repository.AddAsync(employeeEntity);
         }

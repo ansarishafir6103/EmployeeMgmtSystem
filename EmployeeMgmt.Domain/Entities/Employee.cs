@@ -16,7 +16,7 @@ namespace EmployeeMgmt.Domain.Entities
 
         // Sensitive/Hidden Audit Tracks
         public string HashedPassword { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
     }
 }

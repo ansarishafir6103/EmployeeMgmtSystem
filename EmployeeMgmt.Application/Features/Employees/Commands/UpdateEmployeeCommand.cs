@@ -1,11 +1,7 @@
 ﻿using EmployeeMgmt.Application.Contracts;
 using EmployeeMgmt.Domain.Entities;
+using FluentValidation;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace EmployeeMgmt.Application.Features.Employees.Commands
 {
@@ -19,24 +15,31 @@ namespace EmployeeMgmt.Application.Features.Employees.Commands
     public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeCommand, bool>
     {
         private readonly IEmployeeRepository _repository;
-        public UpdateEmployeeCommandHandler(IEmployeeRepository repository)
+        private readonly IValidator<UpdateEmployeeCommand> _validator;
+        public UpdateEmployeeCommandHandler(IEmployeeRepository repository, IValidator<UpdateEmployeeCommand> validator)
         {
             _repository = repository;
+            _validator = validator;
         }
         public async Task<bool> Handle(UpdateEmployeeCommand request,CancellationToken cancellationToken)
         {
-            if(request.EmployeeID == 0 || string.IsNullOrWhiteSpace(request.FirstName)) 
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+
+            // If validation rules break, exit early and return false
+            if (!validationResult.IsValid)
             {
                 return false;
             }
-            var updateEmployee = new Employee
+
+            var updatedEmployee = new Employee
             {
                 EmployeeID = request.EmployeeID,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Department = request.Department
+                FirstName = request.FirstName.Trim(),
+                LastName = request.LastName.Trim(),
+                Department = request.Department.Trim()
             };
-            return await _repository.UpdateAsync(updateEmployee);
+
+            return await _repository.UpdateAsync(updatedEmployee);
         }
     }
 }

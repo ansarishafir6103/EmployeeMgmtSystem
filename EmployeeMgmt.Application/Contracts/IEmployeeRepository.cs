@@ -16,6 +16,9 @@ namespace EmployeeMgmt.Application.Contracts
         // 3.Delete
         Task<bool> DeleteAsync(int id);
         Task<IEnumerable<Employee>> SearchAsync(string searchTearm);
+        //  NEW CONTRACTS ADDED FOR PASSWORD MANAGEMENT 
+        Task<Employee?> GetByIdWithPasswordAsync(int id);
+        Task<bool> UpdatePasswordAsync(int id, string newHashedPassword);
 
     }
 }

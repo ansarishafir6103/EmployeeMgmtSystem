@@ -25,6 +25,10 @@ namespace EmployeeMgmt.Application.Features.Employees.Validators
 
             RuleFor(p => p.Department)
                 .NotEmpty().WithMessage("{PropertyName} is required.");
+
+            RuleFor(p => p.Password)
+               .NotEmpty().WithMessage("{PropertyName} is required.")
+               .MinimumLength(8).WithMessage("{PropertyName} must be at least 8 characters long.");
         }
     }
 }

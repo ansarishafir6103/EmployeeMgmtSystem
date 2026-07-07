@@ -9,19 +9,19 @@ using System.Text;
 
 namespace EmployeeMgmt.Infrastructure.Repositories
 {
-    public class EmployeeRepository : IEmployeeRepository
+    public class AdoEmployeeRepository : IEmployeeRepository
     {
         private readonly string _connectionString;
 
-        public EmployeeRepository(IConfiguration configuration)
+        public AdoEmployeeRepository(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection")
                                  ?? throw new ArgumentNullException("Connection string not found.");
         }
         public async Task<bool> AddAsync(Employee employee)
         {
-            string query = @"INSERT INTO tblEmployees (FirstName, LastName, Email, Department) 
-                             VALUES (@FirstName, @LastName, @Email, @Department)";
+            string query = @"INSERT INTO tblEmployees (FirstName, LastName, Email, Department,HashedPassword,IsActive) 
+                             VALUES (@FirstName, @LastName, @Email, @Department,@HashedPassword,@IsActive)";
 
             using var conn = new SqlConnection(_connectionString);
             using var cmd = new SqlCommand(query, conn);
@@ -30,13 +30,14 @@ namespace EmployeeMgmt.Infrastructure.Repositories
             cmd.Parameters.AddWithValue("@LastName", employee.LastName);
             cmd.Parameters.AddWithValue("@Email", employee.Email);
             cmd.Parameters.AddWithValue("@Department", employee.Department);
-
+            cmd.Parameters.AddWithValue("@HashedPassword", employee.HashedPassword);
+            cmd.Parameters.AddWithValue("@IsActive", employee.IsActive);
             await conn.OpenAsync();
             int rowsAffected = await cmd.ExecuteNonQueryAsync();
             return rowsAffected > 0;
 
         }
-        public async Task<IEnumerable<Employee>> SearchAsync(string searchTearm)
+        public async Task<IEnumerable<Employee>> SearchAsync(string searchTerm)
         {
             var employees = new List<Employee>();
 
@@ -47,7 +48,7 @@ namespace EmployeeMgmt.Infrastructure.Repositories
             using var conn = new SqlConnection(_connectionString);
             using var cmd = new SqlCommand(@query, conn);
                 
-            cmd.Parameters.AddWithValue("@Search", $"%{searchTearm}%");
+            cmd.Parameters.AddWithValue("@Search", $"%{searchTerm}%");
 
             await conn.OpenAsync();
             using var reader = await cmd.ExecuteReaderAsync();
@@ -98,6 +99,41 @@ namespace EmployeeMgmt.Infrastructure.Repositories
             await conn.OpenAsync();
             int rowsAffected = await cmd.ExecuteNonQueryAsync();
             return rowsAffected > 0;
+        }
+        public async Task<Employee?> GetByIdWithPasswordAsync(int id)
+        {
+            string query = "SELECT * FROM tblEmployees WHERE EmployeeID = @ID AND IsActive = 1";
+            using var conn = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@ID", id);
+
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new Employee
+                {
+                    EmployeeID = (int)reader["EmployeeID"],
+                    FirstName = reader["FirstName"].ToString() ?? string.Empty,
+                    LastName = reader["LastName"].ToString() ?? string.Empty,
+                    Email = reader["Email"].ToString() ?? string.Empty,
+                    Department = reader["Department"].ToString() ?? string.Empty,
+                    HashedPassword = reader["HashedPassword"].ToString() ?? string.Empty // Essential mapping
+                };
+            }
+            return null;
+        }
+
+        public async Task<bool> UpdatePasswordAsync(int id, string newHashedPassword)
+        {
+            string query = "UPDATE tblEmployees SET HashedPassword = @Hash WHERE EmployeeID = @ID AND IsActive = 1";
+            using var conn = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Hash", newHashedPassword);
+            cmd.Parameters.AddWithValue("@ID", id);
+
+            await conn.OpenAsync();
+            return await cmd.ExecuteNonQueryAsync() > 0;
         }
 
     }
