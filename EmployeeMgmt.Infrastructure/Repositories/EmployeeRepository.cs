@@ -27,8 +27,6 @@ namespace EmployeeMgmt.Infrastructure.Repositories
             using var cmd = new SqlCommand(query, conn);
 
             cmd.Parameters.AddWithValue("@FirstName", employee.FirstName);
-
-            cmd.Parameters.AddWithValue("@FirstName", employee.FirstName);
             cmd.Parameters.AddWithValue("@LastName", employee.LastName);
             cmd.Parameters.AddWithValue("@Email", employee.Email);
             cmd.Parameters.AddWithValue("@Department", employee.Department);
@@ -48,7 +46,7 @@ namespace EmployeeMgmt.Infrastructure.Repositories
 
             using var conn = new SqlConnection(_connectionString);
             using var cmd = new SqlCommand(@query, conn);
-
+                
             cmd.Parameters.AddWithValue("@Search", $"%{searchTearm}%");
 
             await conn.OpenAsync();
@@ -64,7 +62,7 @@ namespace EmployeeMgmt.Infrastructure.Repositories
                     Email = reader["Email"].ToString() ?? string.Empty,
                     Department = reader["Department"].ToString() ?? string.Empty,
                     IsActive = (bool)reader["IsActive"],
-                    CreateDate = (DateTime)reader["CreateDate"]
+                    CreatedDate = (DateTime)reader["CreatedDate"]
                 });
             }
             return employees;
@@ -87,6 +85,20 @@ namespace EmployeeMgmt.Infrastructure.Repositories
             int rowsAffected = await cmd.ExecuteNonQueryAsync();
             return rowsAffected > 0;
         }
-        public async Task<bool> DeleteAsync(int id) => await Task.FromResult(true);
+        public async Task<bool> DeleteAsync(int id)
+        {
+            // Soft Delete Query: Flips the IsActive bit to 0 instead of dropping the row
+            string query = "UPDATE tblEmployees SET IsActive = 0 WHERE EmployeeID = @EmployeeID";
+
+            using var conn = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(query, conn);
+
+            cmd.Parameters.AddWithValue("@EmployeeID", id);
+
+            await conn.OpenAsync();
+            int rowsAffected = await cmd.ExecuteNonQueryAsync();
+            return rowsAffected > 0;
+        }
+
     }
 }

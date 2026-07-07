@@ -1,4 +1,5 @@
-﻿using EmployeeMgmt.Application.Features.Employees.Commands;
+﻿using EmployeeMgmt.Application.DTOs;
+using EmployeeMgmt.Application.Features.Employees.Commands;
 using EmployeeMgmt.Application.Features.Employees.Queries;
 using EmployeeMgmt.Domain.Entities;
 using MediatR;
@@ -28,14 +29,14 @@ namespace EmployeeMgmt.API.Controllers
             }
             return Ok("Employee successfully added to the database.");
         }
-        [HttpGet("seach")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpGet("search")]
+        [ProducesResponseType(typeof(IEnumerable<EmployeeResponseDto>),StatusCodes.Status200OK)]
         public async Task<IActionResult> Search([FromQuery] string term)
         {
             var result = await _mediator.Send(new SearchEmployeesQuery(term));
             return Ok(result);
         }
-        [HttpGet]
+        [HttpPut]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Update([FromBody] UpdateEmployeeCommand command)

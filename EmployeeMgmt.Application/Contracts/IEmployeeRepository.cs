@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using EmployeeMgmt.Application.DTOs;
 using EmployeeMgmt.Domain.Entities;
 
 namespace EmployeeMgmt.Application.Contracts

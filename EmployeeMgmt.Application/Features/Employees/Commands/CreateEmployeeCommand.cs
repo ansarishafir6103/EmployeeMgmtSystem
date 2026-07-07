@@ -16,7 +16,7 @@ namespace EmployeeMgmt.Application.Features.Employees.Commands
     }
     public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeCommand, bool>
     {
-        private IEmployeeRepository _repository;
+        private readonly IEmployeeRepository _repository;
         public CreateEmployeeCommandHandler(IEmployeeRepository repository)
         {
             _repository = repository;

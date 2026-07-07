@@ -9,10 +9,13 @@ namespace EmployeeMgmt.Domain.Entities
     {
         [Key]
         public int EmployeeID { get; set; }
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? Email { get; set; }
-        public string? Department { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Department { get; set; } = string.Empty;
+
+        // Sensitive/Hidden Audit Tracks
+        public string HashedPassword { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
     }
