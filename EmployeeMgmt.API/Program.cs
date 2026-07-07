@@ -1,5 +1,6 @@
 using EmployeeMgmt.Application.Contracts;
 using EmployeeMgmt.Infrastructure.Repositories;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,9 @@ builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
 // Registering MediatR to route all our Commands and Queries automatically
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(IEmployeeRepository).Assembly));
+
+// Automatically registers all AbstractValidator classes found inside your Application layer
+builder.Services.AddValidatorsFromAssembly(typeof(IEmployeeRepository).Assembly);
 
 // Core services required for Swagger documentation tool
 builder.Services.AddEndpointsApiExplorer();

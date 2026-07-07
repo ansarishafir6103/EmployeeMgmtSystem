@@ -1,5 +1,6 @@
 ﻿using EmployeeMgmt.Application.Contracts;
 using EmployeeMgmt.Domain.Entities;
+using FluentValidation;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -17,16 +18,17 @@ namespace EmployeeMgmt.Application.Features.Employees.Commands
     public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeCommand, bool>
     {
         private readonly IEmployeeRepository _repository;
-        public CreateEmployeeCommandHandler(IEmployeeRepository repository)
+        private readonly IValidator<CreateEmployeeCommand> _validator;
+        public CreateEmployeeCommandHandler(IEmployeeRepository repository, IValidator<CreateEmployeeCommand> validator)
         {
             _repository = repository;
+            _validator = validator;
         }
         public async Task<bool> Handle(CreateEmployeeCommand request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.FirstName))
-            {
-                return false;
-            }
+            // Execute FluentValidation logic
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+
             var employeeEntity = new Employee
             {
                 FirstName = request.FirstName,
