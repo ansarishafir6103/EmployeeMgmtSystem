@@ -16,6 +16,7 @@ namespace EmployeeMgmt.Application.Features.Employees.Commands
         public string Department { get; set; } = string.Empty;
 
         public string Password { get; set; } = string.Empty;
+
     }
     public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeCommand, bool>
     {

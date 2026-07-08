@@ -24,9 +24,11 @@ namespace EmployeeMgmt.Infrastructure.Persistence
 
                 // Mapping explicit table name instead of defaulting to Class plural names
                 entity.ToTable("tblEmployees");
-
+                
                 // Setting explicit database constraints matching MNC specifications
                 entity.HasKey(e => e.EmployeeID);
+                entity.Property(e => e.EmployeeID)
+                .UseIdentityColumn(1,1);
 
                 entity.Property(e => e.FirstName)
                 .IsRequired()
