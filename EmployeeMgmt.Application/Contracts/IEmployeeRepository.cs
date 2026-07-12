@@ -19,6 +19,7 @@ namespace EmployeeMgmt.Application.Contracts
         //  NEW CONTRACTS ADDED FOR PASSWORD MANAGEMENT 
         Task<Employee?> GetByIdWithPasswordAsync(int id);
         Task<bool> UpdatePasswordAsync(int id, string newHashedPassword);
+        Task<Employee?> GetByEmailAsync(string email); 
 
     }
 }

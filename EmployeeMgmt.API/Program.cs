@@ -2,8 +2,15 @@ using EmployeeMgmt.API.Middleware;
 using EmployeeMgmt.Application.Contracts;
 using EmployeeMgmt.Infrastructure.Persistence;
 using EmployeeMgmt.Infrastructure.Repositories;
+using EmployeeMgmt.Infrastructure.Services;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using System.Text;
+using Microsoft.AspNetCore.OpenApi; 
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +25,33 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // विकल्प ए: अगर आप Entity Framework Core चलाना चाहते हैं, तो इसे अनकमेंट रखें:
 builder.Services.AddScoped<IEmployeeRepository, EfEmployeeRepository>();
 
+// ⭐ REGISTER YOUR CUSTOM JWT TOKEN SERVICE CORE AS SCRAMBLED SCOPED DEPENDENCY ⭐
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+// ⭐ CONFIGURE MICROSOFT AUTHENTICATION SERVICES MIDDLEWARE PARAMETERS ⭐
+var secretKeyBytes = Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes),
+        ClockSkew = TimeSpan.Zero // Forces immediate token expiration times
+    };
+});
+
+
 //// Registering our Dependency Injection rule (MNC Standard)
 //builder.Services.AddScoped<IEmployeeRepository, AdoEmployeeRepository>();
 
@@ -29,7 +63,46 @@ builder.Services.AddValidatorsFromAssembly(typeof(IEmployeeRepository).Assembly)
 
 // Core services required for Swagger documentation tool
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+//builder.Services.AddSwaggerGen();
+// =========================================================================
+// 1. SWAGGER JWT SECURITY CONFIGURATION (100% ERROR-FREE SYNTX)
+// =========================================================================
+builder.Services.AddSwaggerGen(options =>
+{
+    // v1 डॉक्यूमेंटेशन सेट करना (बिना किसी नेमस्पेस एरर के)
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Employee Management API",
+        Version = "v1"
+    });
+
+    // 1. JWT Bearer सुरक्षा की परिभाषा बताना
+    var securityScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Type 'Bearer' followed by a space and then paste your token.\n\nExample: Bearer eyJhbGciOi...",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+        {
+            Id = "Bearer",
+            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme
+        }
+    };
+
+    options.AddSecurityDefinition("Bearer", securityScheme);
+
+    // 2. सुरक्षा आवश्यकताओं (Security Requirement) को लागू करना ताकि ताला दिख सके
+    var securityRequirement = new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        { securityScheme, Array.Empty<string>() }
+    };
+
+    options.AddSecurityRequirement(securityRequirement);
+});
+
 
 var app = builder.Build();
 
@@ -49,6 +122,7 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

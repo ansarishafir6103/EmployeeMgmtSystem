@@ -135,6 +135,27 @@ namespace EmployeeMgmt.Infrastructure.Repositories
             await conn.OpenAsync();
             return await cmd.ExecuteNonQueryAsync() > 0;
         }
+        public async Task<Employee?> GetByEmailAsync(string email)
+        {
+            string query = "SELECT * FROM tblEmployees WHERE Email = @Email AND IsActive = 1";
+            using var conn = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Email", email);
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new Employee
+                {
+                    EmployeeID = (int)reader["EmployeeID"],
+                    FirstName = reader["FirstName"].ToString() ?? string.Empty,
+                    LastName = reader["LastName"].ToString() ?? string.Empty,
+                    Email = reader["Email"].ToString() ?? string.Empty,
+                    HashedPassword = reader["HashedPassword"].ToString() ?? string.Empty
+                };
+            }
+            return null;
+        }
 
     }
 }

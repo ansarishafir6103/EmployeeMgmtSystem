@@ -70,6 +70,8 @@ namespace EmployeeMgmt.Infrastructure.Repositories
 
             return await _context.SaveChangesAsync() > 0;
         }
+        public async Task<Employee?> GetByEmailAsync(string email) =>
+        await _context.Employees.FirstOrDefaultAsync(e => e.Email == email && e.IsActive);
 
     }
 }

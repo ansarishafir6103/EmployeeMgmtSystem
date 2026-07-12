@@ -3,6 +3,7 @@ using EmployeeMgmt.Application.Features.Employees.Commands;
 using EmployeeMgmt.Application.Features.Employees.Queries;
 using EmployeeMgmt.Domain.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeMgmt.API.Controllers
@@ -33,6 +34,7 @@ namespace EmployeeMgmt.API.Controllers
             return StatusCode(StatusCodes.Status201Created, new { Message = "Employee successfully added to the database." });
         }
         [HttpGet("search")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(IEnumerable<EmployeeResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Search([FromQuery] string? term = "")
         {
@@ -84,6 +86,15 @@ namespace EmployeeMgmt.API.Controllers
                 return BadRequest(new { Message = "Failed to update password. Verify your current credentials or ID." });
             }
             return Ok(new { Message = "Your system password has been successfully updated." });
+        }
+        [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Login([FromBody] LoginEmployeeCommand command)
+        {
+            var response = await _mediator.Send(command);
+            if (response == null) return Unauthorized(new { Message = "Invalid email credentials or password entry configuration!" });
+            return Ok(response);
         }
 
     }
